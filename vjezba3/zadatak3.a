@@ -1,0 +1,99 @@
+VJ1 EQU 0FFFF1000
+
+VJ2D  EQU 0FFFF2000
+VJ2BS EQU 0FFFF2004
+
+VJ3D    EQU 0FFFF3000
+VJ3IACK EQU 0FFFF3004
+VJ3END  EQU 0FFFF3008
+VJ3STP  EQU 0FFFF300C
+
+		 ORG 0
+		 MOVE 10000, SP
+		
+		 JP MAIN
+
+		 ORG 8
+		 DW 314
+
+MAIN MOVE %B 10000, SR
+		 MOVE 0, R4
+		 MOVE 1, R1
+     STORE R1, (VJ3STP)		 
+
+FOR  LOAD R3, (VJ2BS)
+		 OR R3, R3, R3
+
+		 JP_Z FOR
+
+		 LOAD R1, (BROJ)
+		 STORE R1, (VJ2D)
+
+	   ADD R4, 1, R4
+     STORE R4, (COUNT)
+     STORE R1, (VJ2BS)
+
+		 JP FOR
+
+
+BROJ  DW 0
+COUNT DW 0
+     
+		 ORG 314
+
+		 PUSH R0
+     MOVE SR, R0
+     PUSH R0
+
+     STORE R0, (VJ3IACK)
+     LOAD R0, (VJ1)
+
+		 OR R0, R0, R0
+	   JP_N IEND
+
+     PUSH R0
+     CALL OBRADI
+
+		 ADD SP, 4, SP
+     STORE R0, (BROJ)
+
+     LOAD R0, (COUNT)
+     STORE R0,(VJ3D)
+     STORE R0, (VJ3END)
+
+     POP R0
+     MOVE R0, SR
+     POP R0
+
+     RETI
+
+IEND STORE R0, (VJ3END)
+     MOVE 0, R0
+     STORE R0, (VJ3STP)
+
+END  HALT
+
+OBRADI PUSH R1
+       
+       MOVE 2, R1
+       LOAD R0, (SP + 8)
+
+       CMP R0, 0
+       JP_EQ ZERO1
+
+		   SUB R0, 1, R0
+
+       CMP R0, 0
+       JP_EQ ZERO2 
+
+       SHL R1, R0, R0
+       JP CLEAR
+
+ZERO1  MOVE 1, R0
+       JP CLEAR
+
+ZERO2  MOVE 2, R0
+
+CLEAR  POP R1
+       RET
+
