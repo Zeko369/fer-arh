@@ -1,0 +1,84 @@
+			ORG 0
+			MOV R5, #1<8
+			MOV R6, #1
+
+			B MAIN
+
+			ORG 18	
+			B STOP
+
+MAIN	MOV R13, #80<8
+			
+			LDR R0, RTC
+			STR R5, [R0, #4]
+			STR R6, [R0, #10]
+
+			MRS R0, CPSR
+			BIC R0, R0, #80
+			MSR CPSR_c, R0
+
+LOOP  B LOOP
+
+INDEX DW 0
+RTC   DW 0FFFFFE00
+GPIO  DW 0FFFFFF00
+
+LCDWR STMFD R13!, {R0}
+
+			AND R0, R0, #7F
+			STRB R0, [R1, #4]
+
+			ORR R0, R0, #80
+			STRB R0, [R1, #4]
+
+			AND R0, R0, #7F
+			STRB R0, [R1, #4]
+
+			LDMFD R13!, {R0}
+
+			MOV PC, LR
+
+			ORG 400
+			DB 49,6E,74,65,72,6E,61,74,69,6F,6E,61,6C,69,73,61,74,69,6F,6E,0
+
+STOP	STMFD R13!, {R0, R1, R2, R14}
+			MOV R0, #4<8
+			LDR R3, INDEX
+			LDRB R2, [R0, R3]
+
+			CMP R2, #0
+			LDREQB R2, [R0]
+			
+			LDR R1, GPIO
+
+			MOV R0, #0D
+			BL LCDWR
+
+			MOV R0, #3E
+			BL LCDWR
+			BL LCDWR
+			BL LCDWR
+
+			MOV R0, R2
+			BL LCDWR
+			
+			MOV R0, #3C
+			BL LCDWR
+			BL LCDWR
+			BL LCDWR
+		
+			MOV R0, #0A
+			BL LCDWR
+
+			LDR R0, RTC
+
+			STR R1, [R0, #8]
+			MOV R1, #0
+			STR R1, [R0, #0C]
+
+			MOVEQ R3, #0
+			ADD R3, R3, #1
+			STR R3, INDEX
+
+			LDMFD R13!, {R0, R1, R2, R14}
+			SUBS PC, R14, #4
